@@ -1,0 +1,193 @@
+### Problem 4
+### parity (16)
+parity_n=16
+empty_mat <- matrix(NA, nrow = 2^parity_n, ncol = parity_n)
+
+# count down inside count up outside
+inner_count <- parity_n; outer_count <- 0
+for (i in 1:parity_n) {
+  # print(paste0('i', inner_count - i, 'o', outer_count + i))
+  new_vec <- rep(rep(c(1, 0), each = 2^(inner_count - i)), 2^(outer_count + i - 1))
+  empty_mat[,i] <- new_vec
+}
+
+empty_mat_df <- as.data.frame(empty_mat)
+
+# XOR
+# (A AND B)
+a_and_b <- rep(NA, 2^parity_n)
+for (i in 1:(parity_n - 1)) {
+  if (i == 1) {
+    # 1 AND 2
+    a_and_b <- empty_mat_df[,i] & empty_mat_df[,i+1] 
+  } else if ((i != 1) & (i != 2)) {
+    # 2 AND 3, 
+    a_and_b <- empty_mat_df[,i] & a_and_b
+  }
+}
+a_and_b <- a_and_b * 1
+
+# (A OR B)
+a_or_b <- rep(NA, 2^parity_n)
+for (i in 1:(parity_n - 1)) {
+  if (i == 1) {
+    # 1 OR 2
+    a_or_b <- empty_mat_df[,i] | empty_mat_df[,i+1] 
+  } else if ((i != 1) & (i != 2)) {
+    # 2 OR 3, 
+    a_or_b <- empty_mat_df[,i] | a_or_b
+  }
+}
+a_or_b <- a_or_b * 1
+
+not_a_and_b <- (!a_and_b) * 1
+
+# (A OR B) OR NOT (A AND B)
+a_or_b_or_not_a_and_b <- (a_or_b | not_a_and_b) * 1
+
+library(neuralnet)
+X <- empty_mat_df
+Y <- a_or_b_or_not_a_and_b
+df <- cbind(Y, X)
+net1 <- neuralnet(Y~., df, hidden=2)
+plot(net1)
+
+y <- predict(net1, X)
+sum(round(y) == Y)
+
+### parity(127)
+parity_n <- 127
+empty_mat <- matrix(0, nrow = 2^parity_n, ncol = parity_n)
+
+# count down inside count up outside
+inner_count <- parity_n; outer_count <- 0
+for (i in 1:parity_n) {
+  # print(paste0('i', inner_count - i, 'o', outer_count + i))
+  new_vec <- rep(rep(c(1, 0), each = 2^(inner_count - i)), 2^(outer_count + i - 1))
+  empty_mat[,i] <- new_vec
+}
+
+empty_mat_df <- as.data.frame(empty_mat)
+write.csv(empty_mat_df, file = 'truth_table127.csv', row.names = FALSE)
+
+# XOR
+# (A AND B)
+a_and_b <- rep(NA, 2^parity_n)
+for (i in 1:(parity_n - 1)) {
+  if (i == 1) {
+    # 1 AND 2
+    a_and_b <- empty_mat_df[,i] & empty_mat_df[,i+1] 
+  } else if ((i != 1) & (i != 2)) {
+    # 2 AND 3, 
+    a_and_b <- empty_mat_df[,i] & a_and_b
+  }
+}
+a_and_b <- a_and_b * 1
+
+# (A OR B)
+a_or_b <- rep(NA, 2^parity_n)
+for (i in 1:(parity_n - 1)) {
+  if (i == 1) {
+    # 1 OR 2
+    a_or_b <- empty_mat_df[,i] | empty_mat_df[,i+1] 
+  } else if ((i != 1) & (i != 2)) {
+    # 2 OR 3, 
+    a_or_b <- empty_mat_df[,i] | a_or_b
+  }
+}
+a_or_b <- a_or_b * 1
+
+not_a_and_b <- (!a_and_b) * 1
+
+# (A OR B) OR NOT (A AND B)
+a_or_b_or_not_a_and_b <- (a_or_b | not_a_and_b) * 1
+
+### parity (8)
+parity_n=8
+empty_mat <- matrix(NA, nrow = 2^parity_n, ncol = parity_n)
+
+# count down inside count up outside
+inner_count <- parity_n; outer_count <- 0
+for (i in 1:parity_n) {
+  # print(paste0('i', inner_count - i, 'o', outer_count + i))
+  new_vec <- rep(rep(c(1, 0), each = 2^(inner_count - i)), 2^(outer_count + i - 1))
+  empty_mat[,i] <- new_vec
+}
+
+empty_mat_df <- as.data.frame(empty_mat)
+
+# XOR
+# (A AND B)
+a_and_b <- rep(NA, 2^parity_n)
+for (i in 1:(parity_n - 1)) {
+  if (i == 1) {
+    # 1 AND 2
+    a_and_b <- empty_mat_df[,i] & empty_mat_df[,i+1] 
+  } else if ((i != 1) & (i != 2)) {
+    # 2 AND 3, 
+    a_and_b <- empty_mat_df[,i] & a_and_b
+  }
+}
+a_and_b <- a_and_b * 1
+
+# (A OR B)
+a_or_b <- rep(NA, 2^parity_n)
+for (i in 1:(parity_n - 1)) {
+  if (i == 1) {
+    # 1 OR 2
+    a_or_b <- empty_mat_df[,i] | empty_mat_df[,i+1] 
+  } else if ((i != 1) & (i != 2)) {
+    # 2 OR 3, 
+    a_or_b <- empty_mat_df[,i] | a_or_b
+  }
+}
+a_or_b <- a_or_b * 1
+
+not_a_and_b <- (!a_and_b) * 1
+
+# (A OR B) OR NOT (A AND B)
+a_or_b_or_not_a_and_b <- (a_or_b | not_a_and_b) * 1
+
+X <- empty_mat_df
+Y <- a_or_b_or_not_a_and_b
+df <- cbind(Y, X)
+net3 <- neuralnet(Y~., df, hidden=2)
+plot(net3)
+y <- predict(net3, X)
+sum(round(y) == Y)
+2^8
+
+part_a <- c(1,0,1,0,1,0,1,0)
+part_a <- data.frame(t(data.frame(part_a)))
+colnames(part_a) <- colnames(X)
+predict(net3, part_a)
+
+part_b <- c(1,1,0,0,0,1,1,0)
+part_b <- data.frame(t(data.frame(part_b)))
+colnames(part_b) <- colnames(X)
+predict(net3, part_b)
+
+part_c <- c(1,0,0,0,1,0,0,0)
+part_c <- data.frame(t(data.frame(part_c)))
+colnames(part_c) <- colnames(X)
+predict(net3, part_c)
+
+part_d <- c(1,1,1,1,1,1,1,1)
+part_d <- data.frame(t(data.frame(part_d)))
+colnames(part_d) <- colnames(X)
+predict(net3, part_d)
+
+### Problem 5
+library(mclust)
+N <- 500
+X1 <- rnorm(n = N, mean = 1, sd = sqrt(0.1))
+X2 <- rnorm(n = N, mean = 2, sd = sqrt(0.1))
+X3 <- rnorm(n = N, mean = 3, sd = sqrt(0.2))
+P1 <- 1/6
+P2 <- 1/2
+P3 <- 1/3
+
+X_mix <- (X1 * P1) + (X2 * P2) + (X3 * P3)
+em_clustering = Mclust(data = X_mix, G = 3)
+em_clustering$parameters
+

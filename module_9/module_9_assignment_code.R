@@ -1,0 +1,72 @@
+# Load optidigits data
+train <- read.table('optdigits.tra', sep = ',')
+table(train$V65)
+# test <- read.table('optdigits.tes', sep = ',')
+# table(test$V65)
+
+# V1-V64 are features, V65 is target vector
+# attributes are ranged 0:16
+# class are ranged 0:9
+# no N/A
+X <- train[,1:(ncol(train)-1)]
+sample_means <- colMeans(X)
+sample_sd <- sqrt(diag(cov(X)))
+X_list <- as.list(X)
+
+# Reference: https://stackoverflow.com/questions/39731068/how-to-let-a-matrix-minus-vector-by-row-rather-than-by-column
+# Reference: https://stackoverflow.com/questions/3444889/how-to-use-the-sweep-function
+X_centered <- sweep(X, 2, colMeans(X))
+X_standardized <- sweep(X_centered, 2, sample_sd, FUN = "/")
+### The first column is all zeros, cannot be standardized
+X_standardized$V1 <- 0
+X_standardized$V40 <- 0
+sum(is.na(X_standardized))
+X <- X_standardized
+
+### Normalization stats
+colMeans(X) # roughly zero
+diag(cov(X)) # all ones except cols 1, 40
+### Normalization stats end
+
+S <- cov(X)
+eigens <- eigen(S)
+W <- eigens$vectors # W is the PC matrix that is 64x64
+Z <- as.matrix(X) %*% as.matrix(W) # projection matrix
+
+# Reconstruction
+# x_hat <- t(Z[1,]) %*% t(W) + sample_means # single observation
+X_hat <- Z %*% t(W) + sample_means # reconstruction matrix
+
+# Create an X-hat for 1-64 PC's
+X_hat_levels <- lapply(1:64, function(x) {
+  Z <- as.matrix(X) %*% as.matrix(W[,1:x])
+  X_hat <- Z %*% t(W[,1:x]) + sample_means
+  X_hat
+})
+
+reconstruction_error_list <- lapply(X_hat_levels, function(x) {
+  sum(rowSums((x - X)^2))
+})
+reconstruction_error_df <- do.call(rbind, reconstruction_error_list)
+plot(1:64, reconstruction_error_df, type = 'l',
+     main = 'E(n) vs. n', xlab = '# of PC\'s', ylab = 'Reconstruction Error')
+points(1:64, reconstruction_error_df, pch = 1)
+
+# Reconstruction error
+a = X_hat - X
+total_reconstruction_error <- rowSums((X_hat - X)^2)
+
+
+### analyze Z
+# PC plot
+Z_sub <- Z[,c(1,2)]
+N <- nrow(train)
+# Reference: https://stackoverflow.com/questions/2579995/control-the-size-of-points-in-an-r-scatterplot
+plot(Z_sub[,1], Z_sub[,2], col = scales::alpha('gray', 0.4),
+     xlab = 'PC1', ylab = 'PC2', main = 'Optidigts PCA', pch=19, cex=0.2)
+set.seed(1); sample_classes <- sort(sample(1:N, 2e2))
+label_sample <- train$V65[sample_classes]
+# Reference: https://rpubs.com/RatherBit/188960
+text(x = Z_sub[sample_classes,1], y = Z_sub[sample_classes,2],
+     labels = label_sample, col = scales::alpha('red', 0.4))
+### end analysis

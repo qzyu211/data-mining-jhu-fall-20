@@ -1,0 +1,100 @@
+### Problem 2 (c)
+# plot density vs theta
+thetas <- seq(0, 1, length.out = 1e4)
+s0 <- function(theta) { return(2 * (1 - theta)) }
+s1 <- function(theta) { return(2 * theta) }
+plot(thetas, s0(thetas), type = 'l', col = 'red',
+     main = latex2exp::TeX('$P(\\theta | D) \\;vs.\\;\\theta$'),
+     xlab = latex2exp::TeX('$\\theta$'),
+     ylab = latex2exp::TeX('$P(\\theta | D)$'))
+lines(thetas, s1(thetas), col = 'blue')
+legend("right",
+       legend = c(latex2exp::TeX('$s=0$'),
+                  latex2exp::TeX('$s=1$')),
+       col = c('red', 'blue'), lty = c(1,1))
+
+# Load data
+polynomial_data <- read.csv('xid-94690945_2.txt', header = FALSE, sep = "")
+colnames(polynomial_data) <- c("X", "Y")
+
+# Create initial variables
+m <- nrow(polynomial_data)
+X <- polynomial_data[,1]
+Y <- polynomial_data[,2]
+
+# Calculate the nth degree for X
+nth_degree <- function(x, n) {
+  return(cos(n * x))
+}
+
+nth <- 10
+polynomial_list <- lapply(1:nth, function(y) nth_degree(x=X, n=y))
+
+# Create the matrices for the nth degree polynomials
+halves <- rep(0.5, nth)
+# data_matrix = polynomial_list[1:3] 
+create_design_matrix <- function(halves_vector=halves, data_matrix) {
+  design_mat <- cbind(halves_vector, do.call(cbind, data_matrix))
+  return(design_mat)
+}
+# polynomial_list[1:2] # list these out in 1:1, 1:2, 1:3, etc.
+polynomial_degree_vec <- sapply(seq(1, nth), function(x) c(1,x))
+polynomial_degree_groups <- lapply(1:nth, function(x) polynomial_list[1:x])
+
+# List of the different design matrices for various degree polynomials
+polynomial_design_matrix_list <- lapply(polynomial_degree_groups,
+  function(x) create_design_matrix(data_matrix = x))
+
+# Calculate the beta hat
+beta_hat <- function(X, y) {
+  beta_hat <- solve(t(X) %*% X) %*% t(X) %*% y
+  return(beta_hat)
+}
+
+beta_hat_list <- lapply(polynomial_design_matrix_list,
+  function(x) beta_hat(X = x, y = Y))
+
+# Calculate the adjusted R-squared
+adj_r_squared <- function(X, betahat, y) {
+  y_bar <- mean(y)
+  y_hat <- X %*% betahat
+  
+  SS_tot <- sum((y - y_bar)^2)
+  SS_res <- sum((y - y_hat)^2)
+  
+  n <- length(y)
+  p <- ncol(X) - 1
+  df_e <- n - p - 1
+  df_t <- n - 1
+  
+  adj_r_square <- 1 - ((SS_res / df_e) / (SS_tot / df_t))
+  return(adj_r_square)
+}
+
+adj_r_squared_list <- mapply(function(a, b) adj_r_squared(X = a, betahat = b, y = Y),
+  polynomial_design_matrix_list, beta_hat_list)
+
+par(mfrow = c(1,2))
+plot(1:nth, adj_r_squared_list, type='l',
+     main = latex2exp::TeX('$R_{Adj}^2 \\; vs. \\; n \\; \\left(for \\;n \\in \\left{1,\\cdots,10 \\right}\\right)$'),
+     xlab = latex2exp::TeX('$n$'), ylab = latex2exp::TeX('$R_{Adj}^2$'))
+points(1:nth, adj_r_squared_list)
+
+plot(4:nth, adj_r_squared_list[4:nth], type='l', ylim = c(0.8, 0.9),
+     main = latex2exp::TeX('$R_{Adj}^2 \\; vs. \\; n \\; \\left(for \\;n \\in \\left{4,\\cdots,10 \\right}\\right)$'),
+     xlab = latex2exp::TeX('$n$'), ylab = latex2exp::TeX('$R_{Adj}^2$'))
+points(4:nth, adj_r_squared_list[4:nth])
+
+### Chosen model: n=5
+y_hat <- polynomial_design_matrix_list[[5]] %*% beta_hat_list[[5]]
+plot(X,Y, type = 'l',
+     main = 'The Midterm Data Fitted with the n=5 Model')
+legend("topleft", legend = c('Midterm Data', 'Fitted Line'),
+       col = c('black', 'red'), lty = c(1,1))
+lines(X,y_hat, col = 'red')
+
+e <- Y - y_hat
+mean(e) # correct
+p <- length(beta_hat_list[[5]])
+SSE <- sum(e^2)
+sigma_hat_2 <- SSE / (m - p)

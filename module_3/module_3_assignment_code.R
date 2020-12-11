@@ -1,0 +1,56 @@
+library(latex2exp)
+### 1
+### a
+# sketch P(omega_1 | x) = [p(x|omega_1) * P(omega_1)] / p(x)
+cauchy <- function(x, a, b) {
+  (1 / (pi * b)) * (1 / (1 + ((x - a) / b)^2))
+}
+
+a1 <- 3; a2 <- 2; b <- 5; p_omega1 <- 0.5; p_omega2 <- 0.5
+p_x <- function(x, p_omega1, p_omega2, a1, a2, b) {
+  p_x_given_omega1 <- cauchy(x = x, a = a1, b = b)
+  p_x_given_omega2 <- cauchy(x = x, a = a2, b = b)
+  
+  prob_x <- (p_x_given_omega1 * p_omega1) +
+    (p_x_given_omega2 * p_omega2)
+
+  return(prob_x)
+}
+
+prob_x <- p_x(x = xs,
+  p_omega1 = p_omega1, p_omega2 = p_omega2,
+  a1 = a1, a2 = a2, b = b)
+
+omega_given_x <- function(x, p_omega1, p_omega2,
+  a1 = a1, a2 = a2, b = b) {
+  # Calculate p(x)
+  prob_x <- p_x(x = x,
+    p_omega1 = p_omega1, p_omega2 = p_omega2,
+    a1 = a1, a2 = a2, b = b)
+  
+  # Calculate p(x|omega_i)
+  p_x_given_omega <- cauchy(x = x, a = a1, b = b)
+  
+  cond_prob <- (p_x_given_omega * p_omega1) / prob_x
+  
+  return(cond_prob)
+}
+
+xs <- seq(-3e2, 3e2, length.out = 1e3)
+ys <- omega_given_x(x = xs,
+  p_omega1 = p_omega1, p_omega2 = p_omega2,
+  a1 = a1, a2 = a2, b = b)
+
+plot(xs, ys, type = 'l',
+     main = TeX('$P(\\omega_1 | x) \\; vs.\\; x$'),
+     xlab = TeX('$x$'), ylab = TeX('$P(\\omega_1 | x)$'))
+### b
+prob_error <- function(x) {
+  x <- abs(x)
+  0.5 - (1 / pi) *  atan(0.5 * x)
+}
+
+xs <- seq(-5, 5, length.out = 1e3)
+plot(xs, prob_error(xs), type = 'l',
+     main = TeX('$P(error) \\; vs. \\; | \\frac{a_2 - a_1}{b} | $'),
+     ylab = TeX('$P(error)$'), xlab = TeX('$ | \\frac{a_2 - a_1}{b} | $'))

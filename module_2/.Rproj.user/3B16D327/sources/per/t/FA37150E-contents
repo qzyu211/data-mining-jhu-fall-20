@@ -1,0 +1,44 @@
+library(latex2exp)
+### 1
+### a
+exponential_distribution <- function(x, theta) {
+  ifelse(x >= 0,
+         theta * exp(-theta * x),
+         0)
+}
+
+xs <- seq(-1, 5, length.out = 1e4)
+ys <- exponential_distribution(x = xs, theta = 1)
+plot(xs, ys, type = 'l',
+     main = TeX('$p(x|\\theta)\\;vs.\\;x,\\;\\theta =1,\\;x=\\[-1,\\;5\\]$'),
+     xlab = TeX('$x$'), ylab = TeX('$p(x|\\theta)$'))
+points(0, 0, pch=1); points(0, 1, pch=19)
+### b
+thetas <- seq(0, 5, length.out = 1e4)
+exp_dist_vec <- Vectorize(exponential_distribution, vectorize.args = "theta")
+ys <- exp_dist_vec(x = 1, theta = thetas)
+plot(thetas, ys, type = 'l',
+     main = TeX('$p(x|\\theta)\\;vs.\\;\\theta,\\;\\theta = (0,\\;5\\],\\;x=1$'),
+     xlab = TeX('$\\theta$'), ylab = TeX('$p(x|\\theta)$'))
+points(0, 0, pch=1)
+
+### 2
+### a
+uniform_distribution <- function(x, theta) {
+  ifelse((0<=x) & (x<=theta),
+         1 / theta,
+         0)
+}
+
+# xs <- seq(-1, 6, length.out = 1e4)
+# ys <- uniform_distribution(x = xs, theta = 5)
+# plot(xs, ys, type = 'l')
+# points(0, 0, pch=1); points(0, 0.2, pch=16)
+# points(5, 0, pch=1); points(5, 0.2, pch=16)
+
+thetas <- seq(2, 7, length.out = 1e4)
+ys <- uniform_distribution(x = 3, theta = thetas)
+plot(thetas, ys, type = 'l',
+     main = TeX('$p(x|\\theta)\\;vs.\\;\\theta,\\;\\theta = \\[2,\\;7\\],\\;x=3$'),
+     xlab = TeX('$\\theta$'), ylab = TeX('$p(x|\\theta)$'))
+points(3, 0, pch=1); points(3, max(ys), pch=19)
